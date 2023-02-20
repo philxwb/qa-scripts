@@ -117,7 +117,11 @@
         },
         {
             string: "Drees",
-            comment: "Drees Sommer: Bitte gesondert auf Informationen zur Anstellungsart und Arbeitszeit im Stellentitel achten!"
+            comment: "Drees Sommer: Drees Warnhinweis"
+        },
+        {
+            string: "Appcast",
+            comment: "Appcast: Appcast Warnhinweis"
         },
     ]
 
@@ -132,6 +136,7 @@
             comment: "Select Plus Anzeige"
         },
     ]
+
 
     const checkSessionStorageNull = () => {
         return sessionStorage.getItem("listingAndComment") === null
@@ -186,7 +191,7 @@
         document.querySelector("body > div.overlay").remove()
     }
 
-    const checkStaticOptions = () => {
+    const getStaticOptions = () => {
         let titleArray = document.querySelector("body > h2").innerText
         titleArray = titleArray.split("-")
         let product = titleArray[0]
@@ -203,20 +208,32 @@
     const checkListingIdIsInStorage = (listingID) => {
         let sessionStore = sessionStorage.getItem("listingAndComment")
         if (sessionStore) {
-            sessionStore.includes(listingID)
-            let obj = JSON.parse(sessionStorage.getItem("listingAndComment")).filter(c => {
-                return c.id == listingID
-            })
-            setModalMain(obj[0].comment)
-            return true
+            if (sessionStore.includes(listingID)) {
+                let obj = JSON.parse(sessionStorage.getItem("listingAndComment")).filter(c => {
+                    return c.id == listingID
+                })
+                setModalMain(obj[0].comment)
+                return true
+            }
+            else {
+                let opt = getStaticOptions()
+                if (opt) {
+                    setModalMain("Produkt beachten!")
+                }
+            }
         }
-        setModalMain("Produkt beachten")
-
+        else {
+            let opt = getStaticOptions()
+            if (opt) {
+                setModalMain("Produkt beachten!")
+            }
+        }
     }
 
     const setModalWindow = (comment) => {
 
-        let options = checkStaticOptions()
+        let options = getStaticOptions()
+        console.log(options)
         let finalAlert
         if (options) {
             finalAlert = `
