@@ -158,11 +158,9 @@
         sessionStorage.setItem("listingAndComment", JSON.stringify(newSessionArr))
     }
 
-    // const checkListingIdI
-
     const updateSessionStorage = (props) => {
         let store = JSON.parse(sessionStorage.getItem("listingAndComment"))
-        if (!store.includes(props.id)) {
+        if (!sessionStorage.getItem("listingAndComment").includes(props.id)) {
             store.push({
                 id: props.id,
                 comment: props.comment
@@ -175,6 +173,14 @@
         SEARCH_OBJECT_BACKOFFICE_LISTINGS.map((obj, index) => {
             document.querySelectorAll("td.TxtNormalBlue.column-owner").forEach((c, i) => {
                 if (c.lastChild.textContent.indexOf(obj.string) !== -1) {
+                    if (!checkSessionStorageNull()) {
+                        updateSessionStorage({ id: document.querySelectorAll("td.TxtNormalBlue.JB3.column-id")[i].innerText.replace(/\D/g, ""), comment: obj.comment })
+                    }
+                    else {
+                        setNewSessionStorage({ id: document.querySelectorAll("td.TxtNormalBlue.JB3.column-id")[i].innerText.replace(/\D/g, ""), comment: obj.comment })
+                    }
+                }
+                else if (document.querySelector("td.TxtNormalBlue.column-company > a > strong").textContent.indexOf(obj.string) !== -1) {
                     if (!checkSessionStorageNull()) {
                         updateSessionStorage({ id: document.querySelectorAll("td.TxtNormalBlue.JB3.column-id")[i].innerText.replace(/\D/g, ""), comment: obj.comment })
                     }
