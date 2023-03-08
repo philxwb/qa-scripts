@@ -117,11 +117,11 @@
         },
         {
             string: "Drees",
-            comment: "Drees Sommer: Drees Warnhinweis"
+            comment: "Drees Sommer: Drees Warnhinweis (Meldung anpassbar)"
         },
         {
             string: "Appcast",
-            comment: "Appcast: Appcast Warnhinweis"
+            comment: "Appcast: Appcast Warnhinweis (Meldung anpassbar)"
         },
     ]
 
