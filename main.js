@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name QA Popup - Main
 // @namespace QA tools
-// @version 0.1
+// @version 1.0.2
 // @description Create a popup for given cases
 // @author Philip Berg
 // @match https://www.stepstone.de/admin/admin_OfferCategoryEdit.cfm?id=*
@@ -180,7 +180,7 @@
                         setNewSessionStorage({ id: document.querySelectorAll("td.TxtNormalBlue.JB3.column-id")[i].innerText.replace(/\D/g, ""), comment: obj.comment })
                     }
                 }
-                else if (document.querySelector("td.TxtNormalBlue.column-company > a > strong").textContent.indexOf(obj.string) !== -1) {
+                else if (document.querySelectorAll("td.TxtNormalBlue.column-company > a > strong")[i].textContent.indexOf(obj.string) !== -1) {
                     if (!checkSessionStorageNull()) {
                         updateSessionStorage({ id: document.querySelectorAll("td.TxtNormalBlue.JB3.column-id")[i].innerText.replace(/\D/g, ""), comment: obj.comment })
                     }
