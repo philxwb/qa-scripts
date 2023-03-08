@@ -109,7 +109,7 @@
     </style>
     `)
 
-    // object for searching inside backoffice listings to determine wether listing has string included (i.e. veritreff/dreessommer)
+    // object for searching inside backoffice listings to determine wether listing has string included (i.e. veritreff/dreessommer)  #can be manipulated or expanded at own discretion
     const SEARCH_OBJECT_BACKOFFICE_LISTINGS = [
         {
             string: "Veritreff",
@@ -117,15 +117,15 @@
         },
         {
             string: "Drees",
-            comment: "Drees Sommer: Drees Warnhinweis (Meldung anpassbar)"
+            comment: "Drees Sommer: Drees Warnhinweis"
         },
         {
             string: "Appcast",
-            comment: "Appcast: Appcast Warnhinweis (Meldung anpassbar)"
+            comment: "Appcast: Appcast Warnhinweis"
         },
     ]
 
-    // object for searching inside backoffice listings to determine wether listing has string included (i.e. veritreff/dreessommer)
+    // object for searching inside popup window for categorization (i.e. Select/Select Plus) #can be manipulated or expanded at own discretion
     const SEARCH_OBJECT_WINDOW_ONLY = [
         {
             string: "Select ",
