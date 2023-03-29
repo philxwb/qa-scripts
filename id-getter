@@ -1,0 +1,517 @@
+// ==UserScript==
+// @name         ID-Getter
+// @namespace    http://tampermonkey.net/
+// @version      0.9
+// @description  Get IDs
+// @author       Philip Berg
+// @match        https://www.stepstone.de/admin/admin_selectrecruiter.cfm
+// @match        https://www.stepstone.de/admin/admin_editRecruiter.cfm?CompID=*
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=stepstone.de
+// @grant        window.close
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    const setBackofficeScript = () => {
+        let split = document.querySelector("#stepstone-backoffice-v4-maincontent > h2").innerText.split("(")
+
+        let senderID = split[1]
+        senderID = senderID.replace(/\D/g, "")
+
+        let borsID = split[2]
+        borsID = borsID.replace(/\D/g, "")
+
+        let oneSalesID = document.querySelector("#company_details > tbody > tr:nth-child(4) > td:nth-child(2) > input").value
+
+
+        const setNewSessionStorage = (props) => {
+            let newSessionArr = []
+            newSessionArr.push(
+                {
+                    senderID: props.senderID,
+                    borsID: props.borsID,
+                    oneSalesID: props.oneSalesID,
+                },
+            )
+            localStorage.setItem("data", JSON.stringify(newSessionArr))
+        }
+
+        const updateSessionStorage = (props) => {
+            let store = JSON.parse(localStorage.getItem("data"))
+            if (!localStorage.getItem("data").includes(props.id)) {
+                store.push({
+                    senderID: props.senderID,
+                    borsID: props.borsID,
+                    oneSalesID: props.oneSalesID,
+                })
+            }
+            localStorage.setItem("data", JSON.stringify(store))
+        }
+
+        const checkSessionStorageNull = () => {
+            return localStorage.getItem("data") === null
+        }
+        const closeWindow = () => {
+            window.addEventListener("load", () => {
+                window.close()
+            })
+        }
+
+        if(checkSessionStorageNull()){
+            setNewSessionStorage({
+                senderID:senderID,
+                borsID:borsID != "" ? borsID : "Kein Wert",
+                oneSalesID:oneSalesID != "" ? oneSalesID : "Kein Wert",
+            })
+            closeWindow()
+        }
+        else{
+            updateSessionStorage({
+                senderID:senderID,
+                borsID:borsID != "" ? borsID : "Kein Wert",
+                oneSalesID:oneSalesID != "" ? oneSalesID : "Kein Wert",
+            })
+            closeWindow()
+        }
+    }
+
+    // setBackofficeScript()
+
+    // ###########################################################
+    // ___________________________________________________________
+    // ###########################################################
+
+    const setUserInterface = () => {
+        document.head.insertAdjacentHTML("beforeend", `
+        <style>
+        .search-bubble{
+            position: fixed;
+            right: 10px;
+            bottom: 10px;
+            border: 0;
+            border-radius: 50%;
+            background-color: #0b3fac;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 45px;
+            height: 45px;
+            padding: 10px;
+            transition: 0.3s ease;
+        }
+        .search-bubble:hover{
+            cursor: pointer;
+        }
+        .overlay {
+            width: 100%;
+            height: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #000000ad;
+            z-index: 100000;
+        }
+
+        .modal-window {
+            background-color: white;
+            width: 500px;
+            height: 500px;
+            border: none;
+            border-radius: 8px;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            margin: -350px 0 0 -250px;
+            display: flex;
+            justify-content: center;
+            z-index: 100001;
+            transform: scale(0.5);
+            transition: 0.2s ease;
+        }
+
+        .modal-window--visible {
+            transform: scale(1);
+        }
+
+        .modal-window__inner-wrapper {
+            width: calc(100% - 30px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            margin-top: 80px;
+            gap: 20px;
+            overflow-y: scroll;
+        }
+
+        .modal-window__inner-wrapper table {
+            width: 100%;
+        }
+        .modal-window__inner-wrapper thead {
+            background: black;
+            width: 100%;
+        }
+
+        .modal-window__inner-wrapper th {
+            color: white!important;
+            padding: 5px;
+        }
+
+        .modal-window__inner-wrapper__close-icon {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 25px;
+            height: 25px;
+        }
+        .modal-window__inner-wrapper__close-icon svg {
+            width: 100%;
+            height: 100%;
+            transition: 0.2s ease;
+        }
+        .modal-window__inner-wrapper__close-icon svg:hover {
+            cursor:pointer;
+            transform: scale(1.1)
+        }
+        .modal-window__inner-wrapper__tab-wrapper{
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .modal-window__inner-wrapper__tab-wrapper ul {
+            height: 50px;
+            width: 360px;
+            display: flex;
+            background: #f2f2f2;
+            list-style: none;
+            border-radius: 40px;
+            position: relative;
+            padding: 2.5px;
+        }
+
+        .modal-window__inner-wrapper__tab-wrapper ul::before {
+            content: "";
+            height: 45px;
+            width: calc(100% / 3);
+            background: #7398ff;
+            position: absolute;
+            border-radius: 40px;
+            box-shadow: 0px 8px 20px 0px rgba(0, 0, 0, 0.15);
+            transition: transform 0.5s cubic-bezier(0.15, 0.88, 0.15, 0.97);
+        }
+
+        .modal-window__inner-wrapper__tab-wrapper ul.decouple::before {
+            transform: translate3d(0px, 0px, 0px);
+        }
+
+        .modal-window__inner-wrapper__tab-wrapper ul.resend::before {
+            transform: translate3d(117px, 0px, 0px);
+        }
+
+        .modal-window__inner-wrapper__tab-wrapper ul.decouple-and-resend::before {
+            transform: translate3d(235px, 0px, 0px);
+        }
+
+        .modal-window__inner-wrapper__tab-wrapper ul li {
+            height: 100%;
+            width: 100%;
+            text-align: center;
+            display: grid;
+            place-items: center;
+            font-size: 14px;
+            position: relative;
+            z-index: 1;
+            cursor: pointer;
+        }
+
+        .btn {
+            width: 100%;
+        }
+
+        .btn-export{
+            width: 200px;
+            background-color: #107c41!important;
+            margin-bottom: 20px;
+            color: #fff!important;
+        }
+
+        .alert{
+            background: #e98888;
+        }
+
+        .form-control {
+            display: block;
+            width: 100%;
+            font-family: arial;
+            padding: 0.375rem 0.75rem;
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+            color: #212529;
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid #ced4da;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            border-radius: 0.25rem;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+            resize: vertical;
+            min-height: calc(1.5em + 0.75rem + 2px);
+        }
+        .btn-primary {
+            color: #fff!important;
+            background-color: #0c2577!important;
+            border-color: #0c2577!important;
+        }
+
+        .btn {
+            display: inline-block;
+            font-weight: 400;
+            line-height: 1.5;
+            color: #212529;
+            text-align: center;
+            text-decoration: none;
+            vertical-align: middle;
+            cursor: pointer;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
+            background-color: transparent;
+            border: 1px solid transparent;
+            padding: 0.375rem 0.75rem;
+            font-size: 1rem;
+            border-radius: 0.25rem;
+            transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        [type=button]:not(:disabled), [type=reset]:not(:disabled), [type=submit]:not(:disabled), button:not(:disabled) {
+            cursor: pointer;
+        }
+        button[disabled="true"]{
+            opacity: 0.5;
+        }
+        .alert {
+            position: relative;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid transparent;
+            border-radius: 0.25rem;
+        }
+        .modal-window{
+            font-family: Arial;
+        }
+        .modal-window p {
+            font-size: 18px!important;
+        }
+        `)
+
+        let bubble = document.createElement("div")
+        bubble.setAttribute("class", "search-bubble")
+        bubble.innerHTML = `
+        <svg fill="#ffffff" width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd"><path d="M8.82 20.829c-1.56 1.561-4.094 1.562-5.656 0-.801-.8-1.184-1.854-1.165-2.901.018-.999.403-1.994 1.165-2.756l3.856-3.903-.707-.707-3.856 3.903c-.957.957-1.439 2.207-1.457 3.463-.019 1.304.463 2.614 1.457 3.608.975.976 2.255 1.464 3.535 1.464 1.28 0 2.56-.488 3.535-1.464l3.856-3.903-.707-.707-3.856 3.903zm9.16-5.671l3.712.995.259-.967-3.712-.994-.259.966zm-1.767 1.768l2.717 2.717.707-.707-2.717-2.717-.707.707zm-2.027 1.319l.994 3.713.966-.259-.994-3.713-.966.259zm-8.227-9.451l-3.712-.995-.259.966 3.712.995.259-.966zm9.214-5.623c1.561-1.563 4.095-1.562 5.657 0 1.563 1.562 1.563 4.095 0 5.657l-3.91 3.855.707.707 3.909-3.855c.976-.976 1.464-2.256 1.464-3.536 0-1.28-.488-2.559-1.464-3.535-.974-.976-2.311-1.464-3.589-1.464-1.28 0-2.507.488-3.481 1.464l-3.911 3.855.707.707 3.911-3.855zm-7.446 3.855l-2.718-2.717-.707.707 2.718 2.717.707-.707zm1.061-1.06l-.995-3.713.966-.259.995 3.713-.966.259z"/></svg>
+        `
+        document.body.appendChild(bubble)
+
+        bubble.addEventListener("click", () => {
+            setModalMain()
+        })
+
+        const setModalMain = () => {
+            setOverlay()
+            setModalWindow()
+        }
+
+        const setOverlay = () => {
+            let overlay = document.createElement("div")
+            overlay.setAttribute("class", "overlay")
+            document.body.appendChild(overlay)
+
+        }
+
+        const runMappingAndStartScript = () => {
+            let refValues = document.querySelector("#refValues").value
+            let splittedSenderIDs = refValues.split(",")
+
+            if (Array.isArray(splittedSenderIDs) && splittedSenderIDs != "") {
+                    renderNewScreen()
+                    splittedSenderIDs.map((senderID, i) => {
+                        setTimeout(() => {
+                            let url = `https://www.stepstone.de/admin/admin_editRecruiter.cfm?CompID=${senderID}&closeafter`
+                            window.open(url, "_blank")
+                            console.log(url)
+                            setNewETA(splittedSenderIDs.length, i)
+                        }, i * 1000);
+                    })
+
+            }
+            else{
+                alert("Das sieht nicht wie ein Array aus :/")
+            }
+        }
+
+        const renderNewScreen = () => {
+            let modal = document.querySelector("body > div.modal-window > div")
+            modal.innerHTML = `
+            <span class="modal-window__inner-wrapper__close-icon">
+                <?xml version="1.0" ?><!DOCTYPE svg  PUBLIC '-//W3C//DTD SVG 1.1//EN'  'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'><svg height="512px" id="Layer_1" style="enable-background:new 0 0 512 512;" version="1.1" viewBox="0 0 512 512" width="512px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M443.6,387.1L312.4,255.4l131.5-130c5.4-5.4,5.4-14.2,0-19.6l-37.4-37.6c-2.6-2.6-6.1-4-9.8-4c-3.7,0-7.2,1.5-9.8,4  L256,197.8L124.9,68.3c-2.6-2.6-6.1-4-9.8-4c-3.7,0-7.2,1.5-9.8,4L68,105.9c-5.4,5.4-5.4,14.2,0,19.6l131.5,130L68.4,387.1  c-2.6,2.6-4.1,6.1-4.1,9.8c0,3.7,1.4,7.2,4.1,9.8l37.4,37.6c2.7,2.7,6.2,4.1,9.8,4.1c3.5,0,7.1-1.3,9.8-4.1L256,313.1l130.7,131.1  c2.7,2.7,6.2,4.1,9.8,4.1c3.5,0,7.1-1.3,9.8-4.1l37.4-37.6c2.6-2.6,4.1-6.1,4.1-9.8C447.7,393.2,446.2,389.7,443.6,387.1z"/></svg>
+            </span>
+            <span>
+                <p>
+                    Verbleibende Anzeigen: <span></span>
+                </p>
+            </span>
+            `
+            document.querySelector(".modal-window__inner-wrapper__close-icon").addEventListener("click", () => {
+                document.body.removeChild(document.querySelector("body > div.overlay"))
+                document.body.removeChild(document.querySelector("body > div.modal-window"))
+            })
+        }
+
+
+        const setNewETA = (refLength, i) => {
+            let remaining = parseInt(refLength - i)
+            let eta = remaining
+            let modalTimer = document.querySelector("body > div.modal-window > div > span:nth-child(2) > p > span")
+            modalTimer.innerText = eta
+            eta <= "1" ? document.querySelector("body > div.modal-window > div > span:nth-child(2) > p").innerHTML = `Vorgang abgeschlossen. ${parseInt(refLength)} Sender IDs bearbeitet.<br><br><button class="btn btn-primary btn-get-list" disabled="true">Ergebnisliste anzeigen</button>` : null
+            setTimeout(() => {
+                document.querySelector(".btn-get-list").removeAttribute("disabled")
+            }, 2000);
+            document.querySelector(".btn-get-list").addEventListener("click", () => {
+                renderTable()
+            })
+        }
+
+        const checkSessionStorageNull = () => {
+            return localStorage.getItem("data") === null
+        }
+
+        function exportToExcel(){
+            var htmls = "";
+            var uri = 'data:application/vnd.ms-excel;base64,';
+            var template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>{worksheet}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body><table>{table}</table></body></html>';
+            var base64 = function(s) {
+                return window.btoa(unescape(encodeURIComponent(s)))
+            };
+
+            var format = function(s, c) {
+                return s.replace(/{(\w+)}/g, function(m, p) {
+                    return c[p];
+                })
+            };
+
+            htmls = document.querySelector(".modal-window.modal-window--visible > div > span:nth-child(2) > table").innerHTML
+
+            var ctx = {
+                worksheet : 'Worksheet',
+                table : htmls
+            }
+
+
+            var link = document.createElement("a");
+            link.download = "export_sender_id.xls";
+            link.href = uri + base64(format(template, ctx));
+            link.click();
+        }
+
+        const renderTable = () => {
+            document.querySelector("body > div.modal-window > div > span:nth-child(2)").style.width = "100%"
+            document.querySelector(".modal-window__inner-wrapper").style.justifyContent = "flex-start"
+
+            let store = JSON.parse(localStorage.getItem("data"))
+
+            if (!checkSessionStorageNull()){
+                let html = ""
+                store.map((d) => {
+                    html += `
+                        <tr>
+                            <td>${d.senderID}</td>
+                            <td>${d.borsID}</td>
+                            <td>${d.oneSalesID}</td>
+                        </tr>
+                    `
+                })
+
+                document.querySelector("body > div.modal-window > div > span:nth-child(2)").innerHTML = `
+                <button class="btn btn-export">Als Excel exportieren</button>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Sender-ID</th>
+                                <th>One Admin-ID</th>
+                                <th>One Sales-ID</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${html}
+                        </tbody>
+                    </table>
+
+                `
+
+                document.querySelector(".btn-export").addEventListener("click", () => {
+                    exportToExcel()
+                })
+                localStorage.removeItem("data")
+            }
+            else{
+                document.querySelector("body > div.modal-window > div > span:nth-child(2)").innerHTML = `
+                    <p>Keine Daten vorhanden</p>
+                `
+
+            }
+
+
+        }
+
+        const setModalWindow = () => {
+            let modalWindow = document.createElement("div")
+            modalWindow.setAttribute("class", "modal-window")
+            setTimeout(() => {
+                modalWindow.classList.add("modal-window--visible")
+            }, 10);
+
+
+            modalWindow.innerHTML = `
+                <div class="modal-window__inner-wrapper">
+                    <span class="modal-window__inner-wrapper__close-icon">
+                        <?xml version="1.0" ?><!DOCTYPE svg  PUBLIC '-//W3C//DTD SVG 1.1//EN'  'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'><svg height="512px" id="Layer_1" style="enable-background:new 0 0 512 512;" version="1.1" viewBox="0 0 512 512" width="512px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M443.6,387.1L312.4,255.4l131.5-130c5.4-5.4,5.4-14.2,0-19.6l-37.4-37.6c-2.6-2.6-6.1-4-9.8-4c-3.7,0-7.2,1.5-9.8,4  L256,197.8L124.9,68.3c-2.6-2.6-6.1-4-9.8-4c-3.7,0-7.2,1.5-9.8,4L68,105.9c-5.4,5.4-5.4,14.2,0,19.6l131.5,130L68.4,387.1  c-2.6,2.6-4.1,6.1-4.1,9.8c0,3.7,1.4,7.2,4.1,9.8l37.4,37.6c2.7,2.7,6.2,4.1,9.8,4.1c3.5,0,7.1-1.3,9.8-4.1L256,313.1l130.7,131.1  c2.7,2.7,6.2,4.1,9.8,4.1c3.5,0,7.1-1.3,9.8-4.1l37.4-37.6c2.6-2.6,4.1-6.1,4.1-9.8C447.7,393.2,446.2,389.7,443.6,387.1z"/></svg>
+                    </span>
+                    <textarea id="refValues" class="form-control" rows="10" placeholder="Referenz-IDs eingeben ..."></textarea>
+                    <button class="btn btn-primary">Okay let's go</button>
+                </div>
+            `
+            document.body.appendChild(modalWindow)
+
+            let lis = document.querySelectorAll(".modal-window__inner-wrapper__tab-wrapper li")
+            lis.forEach((li, i) => {
+                li.addEventListener("click", ({ target }) => {
+                    target.parentNode.className = ""
+                    target.parentNode.classList.add(target.id)
+                })
+            })
+
+            document.querySelector(".modal-window__inner-wrapper__close-icon").addEventListener("click", () => {
+                document.body.removeChild(document.querySelector("body > div.overlay"))
+                document.body.removeChild(document.querySelector("body > div.modal-window"))
+            })
+
+            document.querySelector(".modal-window__inner-wrapper button").addEventListener("click", () => {
+                runMappingAndStartScript()
+            })
+        }
+    }
+
+    // ########################################
+
+    let url = window.location.href
+    if (url.includes("admin_selectrecruiter.cfm") ) {
+        setUserInterface()
+    }
+    else if (url.includes("closeafter")) {
+        setBackofficeScript()
+    }
+
+})();
