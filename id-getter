@@ -156,7 +156,7 @@
             background: black;
             width: 100%;
         }
-        
+
         .modal-window__inner-wrapper th {
             color: white!important;
             padding: 5px;
@@ -270,7 +270,7 @@
             background-color: #0c2577!important;
             border-color: #0c2577!important;
         }
-        
+
         .btn {
             display: inline-block;
             font-weight: 400;
@@ -354,7 +354,7 @@
                             setNewETA(splittedSenderIDs.length, i)
                         }
                     })
-   
+
             }
             else{
                 alert("Das sieht nicht wie ein Array aus :/")
@@ -380,7 +380,7 @@
             })
         }
 
-        
+
         const setNewETA = (refLength, i) => {
             let remaining = parseInt(refLength - i)
             let eta = remaining
@@ -399,15 +399,15 @@
             return localStorage.getItem("data") === null
         }
 
-        function exportToExcel(){
-            var htmls = "";
-            var uri = 'data:application/vnd.ms-excel;base64,';
-            var template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>{worksheet}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body><table>{table}</table></body></html>'; 
-            var base64 = function(s) {
+        const exportToExcel = () => {
+            let htmls = "";
+            const uri = 'data:application/vnd.ms-excel;base64,';
+            let template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>{worksheet}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body><table>{table}</table></body></html>';
+            let base64 = function(s) {
                 return window.btoa(unescape(encodeURIComponent(s)))
             };
 
-            var format = function(s, c) {
+            let format = function(s, c) {
                 return s.replace(/{(\w+)}/g, function(m, p) {
                     return c[p];
                 })
@@ -415,13 +415,13 @@
 
             htmls = document.querySelector(".modal-window.modal-window--visible > div > span:nth-child(2) > table").innerHTML
 
-            var ctx = {
+            let ctx = {
                 worksheet : 'Worksheet',
                 table : htmls
             }
 
 
-            var link = document.createElement("a");
+            let link = document.createElement("a");
             link.download = "export_sender_id.xls";
             link.href = uri + base64(format(template, ctx));
             link.click();
@@ -444,7 +444,7 @@
                         </tr>
                     `
                 })
-    
+
                 document.querySelector("body > div.modal-window > div > span:nth-child(2)").innerHTML = `
                 <button class="btn btn-export">Als Excel exportieren</button>
                     <table>
@@ -459,9 +459,9 @@
                             ${html}
                         </tbody>
                     </table>
-                
+
                 `
-    
+
                 document.querySelector(".btn-export").addEventListener("click", () => {
                     exportToExcel()
                 })
@@ -513,7 +513,7 @@
     }
 
     // ########################################
-    
+
     let url = window.location.href
     if (url.includes("admin_selectrecruiter.cfm") ) {
         setUserInterface()
