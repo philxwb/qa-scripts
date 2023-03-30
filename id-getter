@@ -339,22 +339,20 @@
             let splittedSenderIDs = refValues.split(",")
 
             if (Array.isArray(splittedSenderIDs) && splittedSenderIDs != "") {
-                    renderNewScreen()
-                    splittedSenderIDs.map((senderID, i) => {
-                        senderID = senderID.replace(/\D/g, "")
-                        if (senderID != "") {
-                            setTimeout(() => {
-                                let url = `https://www.stepstone.de/admin/admin_editRecruiter.cfm?CompID=${senderID}&closeafter`
-                                window.open(url, "_blank")
-                                console.log(url)
-                                setNewETA(splittedSenderIDs.length, i)
-                            }, i * 1000);
-                        }
-                        else{
+                renderNewScreen()
+                splittedSenderIDs.map((senderID, i) => {
+                    senderID = senderID.replace(/\D/g, "")
+                    if (senderID != "") {
+                        setTimeout(() => {
+                            let url = `https://www.stepstone.de/admin/admin_editRecruiter.cfm?CompID=${senderID}&closeafter`
+                            window.open(url, "_blank")
                             setNewETA(splittedSenderIDs.length, i)
-                        }
-                    })
-
+                        }, i * 1000);
+                    }
+                    else{
+                        setNewETA(splittedSenderIDs.length, i)
+                    }
+                })
             }
             else{
                 alert("Das sieht nicht wie ein Array aus :/")
